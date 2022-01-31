@@ -1,0 +1,22 @@
+---
+- name: routeros
+  hosts: routeros
+  connection: network_cli
+  gather_facts: no
+
+  tasks:
+  - name: update_version
+    routeros_command:
+      commands: /system package update check-for-updates
+    register: system_print
+
+  - name: debug print
+    debug: var=system_print.stdout_lines
+
+  - name: upgrade_version
+    routeros_command:
+      commands: /system routerboard print
+    register: system_print2
+
+  - name: debug print
+    debug: var=system_print2.stdout_lines

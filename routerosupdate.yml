@@ -1,0 +1,67 @@
+---
+- name: routeros
+  hosts: routeros
+  any_errors_fatal : true
+  connection: network_cli
+  gather_facts: no
+
+  tasks:
+  - name: download update
+    routeros_command:
+      commands: /system package update download
+    register: print
+
+  - name: debug print
+    debug: var=print.stdout_lines
+
+  - name: reboot for update
+    routeros_command:
+      commands: :execute {/system reboot};
+    async: 1
+    poll: 0
+
+  - name: Wait till my mikrotik come up online
+    wait_for:
+      host: routeros
+      state: started
+      delay: 5
+      timeout: 80
+    delegate_to: 127.0.0.1
+    
+  - name: upgrade
+    routeros_command:
+      commands: :execute {/system routerboard upgrade };
+    register: print2
+
+  - name: debug print
+    debug: var=print2.stdout_lines
+
+  - name: reboot for upgrade
+    routeros_command:
+      commands: :execute {/system reboot};
+    async: 1
+    poll: 0
+
+  - name: Wait till my mikrotik come up online
+    wait_for:
+      host: routeros
+      state: started
+      delay: 5
+      timeout: 80
+    delegate_to: 127.0.0.1
+
+  - name: update_version
+    routeros_command:
+      commands: /system package update check-for-updates
+    register: print3
+
+  - name: debug print
+    debug: var=print3.stdout_lines
+
+  - name: upgrade_version
+    routeros_command:
+      commands: /system routerboard print
+    register: print4
+
+  - name: debug print
+    debug: var=print4.stdout_lines
